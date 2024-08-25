@@ -57,7 +57,7 @@ class WC_Variation_Table_Manager {
 	/**
 	 * Add variations table meta box
 	 */
-	public function add_variations_table_meta_box() {
+	public function add_variations_table_meta_box(): void {
 		add_meta_box(
 			'wc_variation_table_manager',
 			__('Product Variations Table', 'wc-variation-table-manager'),
@@ -71,7 +71,7 @@ class WC_Variation_Table_Manager {
 	/**
 	 * Display the variations table in the meta box
 	 */
-	public function display_variations_table($post = '') {
+	public function display_variations_table(): void {
 		// Check if the product_id parameter is set
 		if (!isset($_GET['product_id'])) {
 			echo '<p>' . __('Product ID not provided.', 'wc-variation-table-manager') . '</p>';
@@ -80,7 +80,7 @@ class WC_Variation_Table_Manager {
 
 		$product_id = intval($_GET['product_id']);
 
-		// Fetch the product and its variations
+		// Fetch the product object
 		$product = wc_get_product($product_id);
 
 		if (!$product || $product->get_type() !== 'variable') {
@@ -88,11 +88,11 @@ class WC_Variation_Table_Manager {
 			return;
 		}
 
-		// Get variations
-		$variations = $product->get_available_variations();
+		// Get variation IDs
+		$variation_ids = $product->get_children();
 
 		echo '<h3>' . __('Manage Variations for Product ID:', 'wc-variation-table-manager') . ' ' . $product_id . '</h3>';
-		echo '<form method="post" action="">';
+		echo '<form method="post" action="" enctype="multipart/form-data">';
 		echo '<table class="widefat fixed" cellspacing="0">';
 		echo '<thead>';
 		echo '<tr>';
@@ -104,15 +104,12 @@ class WC_Variation_Table_Manager {
 		echo '</thead>';
 		echo '<tbody>';
 
-		foreach ($variations as $variation) {
-			$variation_id = $variation['variation_id'];
+		foreach ($variation_ids as $variation_id) {
 			$variation_obj = wc_get_product($variation_id);
 			$image = wp_get_attachment_image_url($variation_obj->get_image_id(), 'thumbnail');
 			$sku = $variation_obj->get_sku();
 			$price = $variation_obj->get_regular_price();
-			$variation_name = implode(' / ', array_map(function ($attribute) {
-				return wc_attribute_label($attribute);
-			}, $variation['attributes']));
+			$variation_name = implode(', ', $variation_obj->get_attributes());
 
 			echo '<tr>';
 			echo '<td>' . esc_html($variation_name) . '</td>';
@@ -136,11 +133,12 @@ class WC_Variation_Table_Manager {
 	/**
 	 * Admin page content
 	 */
-	public function admin_page_content() {
+	public function admin_page_content(): void {
 		$this->display_variations_table();
 	}
 
 	public function handle_variation_form_submission() {
+		// Check if the form is submitted
 		if (!isset($_POST['save_variations'])) {
 			return; // Exit if the form is not submitted
 		}
@@ -158,8 +156,9 @@ class WC_Variation_Table_Manager {
 		}
 
 		// Process each variation
-		foreach ($product->get_available_variations() as $variation) {
-			$variation_id = $variation['variation_id'];
+		$variation_ids = $product->get_children(); // Get all variation IDs
+
+		foreach ($variation_ids as $variation_id) {
 			$variation_obj = wc_get_product($variation_id);
 
 			// Update SKU

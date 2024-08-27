@@ -29,14 +29,11 @@ class WC_Variation_Table_Manager {
 	/**
 	 * Adds a custom button to the product variation tab.
 	 *
-	 * @param int $loop
-	 * @param array $variation_data
-	 * @param WP_Post $variation
 	 */
-	public function add_variation_manager_button( $p ): void {
+	public function add_variation_manager_button(): void {
 
 		global $post;
-		$product_id = $post->ID; // Get the product ID
+		$product_id            = $post->ID; // Get the product ID
 		$variation_manager_url = admin_url( 'admin.php?page=wc-variation-table-manager&product_id=' . $product_id );
 
 		echo '<p class="form-field variation_manager_button">';

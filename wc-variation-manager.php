@@ -23,7 +23,7 @@ class WC_Variation_Table_Manager {
 		add_action( 'admin_init', array( $this, 'handle_variation_form_submission' ) );
 
 		// Hook to add a custom button to the product variation tab
-		add_action( 'woocommerce_variable_product_before_variations', array( $this, 'add_variation_manager_button' ), 10, 2 );
+		add_action( 'woocommerce_variable_product_before_variations', array( $this, 'add_variation_manager_button' ) );
 	}// __construct
 
 	/**
@@ -33,8 +33,10 @@ class WC_Variation_Table_Manager {
 	 * @param array $variation_data
 	 * @param WP_Post $variation
 	 */
-	public function add_variation_manager_button( int $loop, array $variation_data, WP_Post $variation ): void {
-		$product_id = $variation->post_parent; // Get the product ID
+	public function add_variation_manager_button( $p ): void {
+
+		global $post;
+		$product_id = $post->ID; // Get the product ID
 		$variation_manager_url = admin_url( 'admin.php?page=wc-variation-table-manager&product_id=' . $product_id );
 
 		echo '<p class="form-field variation_manager_button">';

@@ -4,7 +4,7 @@
  * Plugin Name: WC Variation Table Manager
  * Plugin URI: https://github.com/safwanyusufzai/WC-Variation-Table-Manager
  * Description: A plugin to manage variations in WooCommerce.
- * Version: 0.0.3
+ * Version: 0.0.4
  * Author: Fayaz Khan
  * Author URI: https://github.com/safwanyusufzai
  * License: GPL-3.0-or-later

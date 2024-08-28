@@ -236,7 +236,13 @@ class WC_Variation_Table_Manager {
                     const parts = label.toLowerCase().split(',');
                     const suffix = parts.map(function (part) {
                         return part.trim().split(' ').map(function (word) {
-                            return word.charAt(0);
+                            if(word.includes('-')) {
+                                return word.split('-').map(function(word) {
+                                    return word.charAt(0);
+                                }).join('');
+                            }else{
+                                return word.charAt(0);
+                            }
                         }).join('');
                     }).join('');
                     return baseSku + '-' + suffix;

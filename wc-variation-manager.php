@@ -18,6 +18,7 @@ class WC_Variation_Table_Manager {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 		add_action( 'admin_init', array( $this, 'handle_variation_form_submission' ) );
 		add_action( 'woocommerce_variable_product_before_variations', array( $this, 'add_variation_manager_button' ) );
+		add_filter( 'post_row_actions', array( $this, 'add_variation_manager_link' ), 10, 2 );
 	}// __construct
 
 	/**
@@ -32,6 +33,22 @@ class WC_Variation_Table_Manager {
 		echo '</p>';
 	}// add_variation_manager_button
 
+	public function add_variation_manager_link( $actions, $post ) {
+		if ( $post->post_type == 'product' ) {
+			$product = wc_get_product( $post->ID );
+			if ( $product && $product->is_type( 'variable' ) && $product->get_children() ) {
+				$variation_manager_url        = admin_url( 'admin.php?page=wc-variation-table-manager&product_id=' . $post->ID );
+				$actions['variation_manager'] = sprintf(
+					'<a href="%s">%s</a>',
+					esc_url( $variation_manager_url ),
+					__( 'Manage Variations', 'wc-variation-table-manager' )
+				);
+			}
+		}
+
+		return $actions;
+	}
+
 
 	/**
 	 * Add admin menu item
@@ -45,8 +62,11 @@ class WC_Variation_Table_Manager {
 			array( $this, 'admin_page_content' ),
 			'dashicons-editor-table'
 		);
-	}
+	}// add_admin_menu
 
+	/**
+	 * @return void
+	 */
 	public function enqueue_admin_scripts(): void {
 		wp_enqueue_media();
 		wp_enqueue_style( 'wc-variation-table-manager-style', plugin_dir_url( __FILE__ ) . 'assets/css/admin-style.css' );
@@ -57,7 +77,7 @@ class WC_Variation_Table_Manager {
 			'1.0',
 			true
 		);
-	}
+	}// enqueue_admin_scripts
 
 	/**
 	 * Admin page content
@@ -79,7 +99,7 @@ class WC_Variation_Table_Manager {
 		}
 
 		echo '<h3>' . __( 'Manage Variations for Product ID:', 'wc-variation-table-manager' ) . ' ' . $product_id . '</h3>';
-
+		echo '<button type="button" id="sku_generator" class="button">' . __( 'SKU Generator', 'wc-variation-table-manager' ) . '</button>';
 		$attributes = $product->get_attributes();
 
 		echo '<form method="get" action="' . esc_url( admin_url( 'admin.php' ) ) . '">';
@@ -94,7 +114,7 @@ class WC_Variation_Table_Manager {
 				$attribute_name  = $attribute->get_name();
 				$attribute_label = wc_attribute_label( $attribute_name );
 
-				echo '<label>'.esc_html( $attribute_label ).'</label>';
+				echo '<label>' . esc_html( $attribute_label ) . '</label>';
 
 				echo '<select name="' . esc_attr( $attribute_name ) . '">';
 				echo '<option value="">' . __( 'Select', 'wc-variation-table-manager' ) . ' ' . esc_html( $attribute_label ) . '</option>';
@@ -196,8 +216,39 @@ class WC_Variation_Table_Manager {
 		echo '<br />';
 		echo '<input type="submit" name="save_variations" value="' . __( 'Save Changes', 'wc-variation-table-manager' ) . '" class="button-primary" />';
 		echo '</form>';
+
+		?>
+		<script type="text/javascript">
+            jQuery(document).ready(function($) {
+                $('#sku_generator').on('click', function() {
+                    const baseSku = prompt("<?php _e( 'Enter the base SKU:', 'wc-variation-table-manager' ); ?>");
+                    if (baseSku) {
+                        $('input[name^="variation_sku_"]').each(function() {
+                            const $row = $(this).closest('tr');
+                            const label = $row.find('td:first').text();
+                            const sku = generateSku(baseSku, label);
+                            $(this).val(sku.toUpperCase());
+                        });
+                    }
+                });
+
+                function generateSku(baseSku, label) {
+                    const parts = label.toLowerCase().split(',');
+                    const suffix = parts.map(function (part) {
+                        return part.trim().split(' ').map(function (word) {
+                            return word.charAt(0);
+                        }).join('');
+                    }).join('');
+                    return baseSku + '-' + suffix;
+                }
+            });
+		</script>
+		<?php
 	}
 
+	/**
+	 * @return void
+	 */
 	public function handle_variation_form_submission(): void {
 		if ( ! isset( $_POST['save_variations'] ) ) {
 			return;
@@ -217,7 +268,7 @@ class WC_Variation_Table_Manager {
 		$variation_ids = $product->get_children();
 
 		foreach ( $variation_ids as $variation_id ) {
-			try{
+			try {
 				$variation_obj = wc_get_product( $variation_id );
 
 				if ( isset( $_POST[ 'variation_sku_' . $variation_id ] ) ) {
@@ -236,7 +287,7 @@ class WC_Variation_Table_Manager {
 				}
 
 				$variation_obj->save();
-			}catch( Exception $e ){
+			} catch ( Exception $e ) {
 				echo '<div class="error"><p>' . $e->getMessage() . '</p></div>';
 			}
 		}

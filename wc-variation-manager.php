@@ -4,7 +4,7 @@
  * Plugin Name: WC Variation Table Manager
  * Plugin URI: https://github.com/safwanyusufzai/WC-Variation-Table-Manager
  * Description: A plugin to manage variations in WooCommerce.
- * Version: 0.0.2
+ * Version: 0.0.3
  * Author: Fayaz Khan
  * Author URI: https://github.com/safwanyusufzai
  * License: GPL-3.0-or-later
@@ -217,24 +217,28 @@ class WC_Variation_Table_Manager {
 		$variation_ids = $product->get_children();
 
 		foreach ( $variation_ids as $variation_id ) {
-			$variation_obj = wc_get_product( $variation_id );
+			try{
+				$variation_obj = wc_get_product( $variation_id );
 
-			if ( isset( $_POST[ 'variation_sku_' . $variation_id ] ) ) {
-				$new_sku = sanitize_text_field( $_POST[ 'variation_sku_' . $variation_id ] );
-				$variation_obj->set_sku( $new_sku );
+				if ( isset( $_POST[ 'variation_sku_' . $variation_id ] ) ) {
+					$new_sku = sanitize_text_field( $_POST[ 'variation_sku_' . $variation_id ] );
+					$variation_obj->set_sku( $new_sku );
+				}
+
+				if ( isset( $_POST[ 'variation_price_' . $variation_id ] ) ) {
+					$new_price = sanitize_text_field( $_POST[ 'variation_price_' . $variation_id ] );
+					$variation_obj->set_regular_price( $new_price );
+				}
+
+				if ( isset( $_POST[ 'variation_image_' . $variation_id ] ) ) {
+					$image_id = intval( $_POST[ 'variation_image_' . $variation_id ] );
+					$variation_obj->set_image_id( $image_id );
+				}
+
+				$variation_obj->save();
+			}catch( Exception $e ){
+				echo '<div class="error"><p>' . $e->getMessage() . '</p></div>';
 			}
-
-			if ( isset( $_POST[ 'variation_price_' . $variation_id ] ) ) {
-				$new_price = sanitize_text_field( $_POST[ 'variation_price_' . $variation_id ] );
-				$variation_obj->set_regular_price( $new_price );
-			}
-
-			if ( isset( $_POST[ 'variation_image_' . $variation_id ] ) ) {
-				$image_id = intval( $_POST[ 'variation_image_' . $variation_id ] );
-				$variation_obj->set_image_id( $image_id );
-			}
-
-			$variation_obj->save();
 		}
 
 		echo '<div class="updated"><p>' . __( 'Variations updated successfully.', 'wc-variation-table-manager' ) . '</p></div>';

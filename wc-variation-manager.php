@@ -298,7 +298,9 @@ class WC_Variation_Table_Manager {
 			}
 		}
 
-		echo '<div class="updated"><p>' . __( 'Variations updated successfully.', 'wc-variation-table-manager' ) . '</p></div>';
+		add_action( 'admin_notices', function(){
+			echo '<div class="updated"><p>' . __( 'Variations updated successfully.', 'wc-variation-table-manager' ) . '</p></div>';
+		} );
 	}// handle_variation_form_submission
 
 }// WC_Variation_Table_Manager

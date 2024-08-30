@@ -4,7 +4,7 @@
  * Plugin Name: WC Variation Table Manager
  * Plugin URI: https://github.com/safwanyusufzai/WC-Variation-Table-Manager
  * Description: A plugin to manage variations in WooCommerce.
- * Version: 0.0.5
+ * Version: 0.1.0
  * Author: Fayaz Khan
  * Author URI: https://github.com/safwanyusufzai
  * License: GPL-3.0-or-later
@@ -104,6 +104,8 @@ class WC_Variation_Table_Manager {
 
 		echo '<h3>' . __( 'Manage Variations for Product ID:', 'wc-variation-table-manager' ) . ' ' . $product_id . '</h3>';
 		echo '<button type="button" id="sku_generator" class="button">' . __( 'SKU Generator', 'wc-variation-table-manager' ) . '</button>';
+		echo '<button type="button" id="bulk_image_update" class="button">' . __( 'Bulk Update Image', 'wc-variation-table-manager' ) . '</button>';
+		echo '<button type="button" id="bulk_price_update" class="button">' . __( 'Bulk Update Price', 'wc-variation-table-manager' ) . '</button>';
 
 		echo '<form method="get" action="' . esc_url( admin_url( 'admin.php' ) ) . '">';
 		echo '<input type="hidden" name="page" value="wc-variation-table-manager" />';
@@ -249,6 +251,60 @@ class WC_Variation_Table_Manager {
                     }).join('');
                     return baseSku + '-' + suffix;
                 }
+
+                // Bulk Price Update
+                $('#bulk_price_update').on('click', function() {
+                    const newPrice = prompt("<?php _e( 'Enter the new price for all variations:', 'wc-variation-table-manager' ); ?>");
+                    if (newPrice !== null && !isNaN(newPrice) && newPrice !== "") {
+                        $('input[name^="variation_price_"]').val(parseInt(newPrice));
+                    }
+                });
+
+                // Bulk Image Update
+                $('#bulk_image_update').on('click', function(e) {
+                    e.preventDefault();
+                    var image_frame;
+                    if(image_frame){
+                        image_frame.open();
+                    }
+                    // Define image_frame as wp.media object
+                    image_frame = wp.media({
+                        title: '<?php _e( "Select Media", "wc-variation-table-manager" ); ?>',
+                        multiple : false,
+                        library : {
+                            type : 'image',
+                        }
+                    });
+
+                    image_frame.on('close',function() {
+                        var selection =  image_frame.state().get('selection');
+                        var gallery_ids = new Array();
+                        var my_index = 0;
+                        selection.each(function(attachment) {
+                            gallery_ids[my_index] = attachment['id'];
+                            my_index++;
+                        });
+                        var ids = gallery_ids.join(",");
+                        if(ids.length === 0) return;
+
+                        // Update all variation images
+                        $('input[name^="variation_image_"]').val(ids);
+                        $('img[id^="variation_image_preview_"]').attr('src', selection.first().attributes.url);
+                    });
+
+                    image_frame.on('open',function() {
+                        var selection =  image_frame.state().get('selection');
+                        var ids = $('input[name^="variation_image_"]:first').val().split(',');
+                        ids.forEach(function(id) {
+                            var attachment = wp.media.attachment(id);
+                            attachment.fetch();
+                            selection.add( attachment ? [ attachment ] : [] );
+                        });
+                    });
+
+                    image_frame.open();
+                });
+
             });
         </script>
 		<?php

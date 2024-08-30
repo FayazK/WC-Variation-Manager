@@ -19,6 +19,10 @@ class WC_Variation_Table_Manager {
 		add_action( 'admin_init', array( $this, 'handle_variation_form_submission' ) );
 		add_action( 'woocommerce_variable_product_before_variations', array( $this, 'add_variation_manager_button' ) );
 		add_filter( 'post_row_actions', array( $this, 'add_variation_manager_link' ), 10, 2 );
+
+		add_filter( 'woocommerce_rest_batch_items_limit', function($limit){
+			return 200;
+        });
 	}// __construct
 
 	/**

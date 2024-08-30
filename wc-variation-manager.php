@@ -20,9 +20,9 @@ class WC_Variation_Table_Manager {
 		add_action( 'woocommerce_variable_product_before_variations', array( $this, 'add_variation_manager_button' ) );
 		add_filter( 'post_row_actions', array( $this, 'add_variation_manager_link' ), 10, 2 );
 
-		add_filter( 'woocommerce_rest_batch_items_limit', function($limit){
+		add_filter( 'woocommerce_rest_batch_items_limit', function ( $limit ) {
 			return 200;
-        });
+		} );
 	}// __construct
 
 	/**
@@ -104,13 +104,13 @@ class WC_Variation_Table_Manager {
 
 		echo '<h3>' . __( 'Manage Variations for Product ID:', 'wc-variation-table-manager' ) . ' ' . $product_id . '</h3>';
 		echo '<button type="button" id="sku_generator" class="button">' . __( 'SKU Generator', 'wc-variation-table-manager' ) . '</button>';
-		$attributes = $product->get_attributes();
 
 		echo '<form method="get" action="' . esc_url( admin_url( 'admin.php' ) ) . '">';
 		echo '<input type="hidden" name="page" value="wc-variation-table-manager" />';
 		echo '<input type="hidden" name="product_id" value="' . esc_attr( $product_id ) . '" />';
 
 		// Check and display attributes
+		$attributes = $product->get_attributes();
 		if ( empty( $attributes ) ) {
 			echo '<p>' . __( 'No attributes found for this product.', 'wc-variation-table-manager' ) . '</p>';
 		} else {
@@ -131,8 +131,8 @@ class WC_Variation_Table_Manager {
 
 					if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
 						foreach ( $terms as $term ) {
-							$selected = ( isset( $_GET[ $attribute_name ] ) && $_GET[ $attribute_name ] == $term->slug ) ? ' selected' : '';
-							echo '<option value="' . esc_attr( $term->slug ) . '"' . $selected . '>' . esc_html( $term->name ) . '</option>';
+							$selected = ( isset( $_GET[ $attribute_name ] ) && $_GET[ $attribute_name ] == $term->name ) ? ' selected' : '';
+							echo '<option value="' . esc_attr( $term->name ) . '"' . $selected . '>' . esc_html( $term->name ) . '</option>';
 						}
 					}
 				} else {
@@ -149,8 +149,6 @@ class WC_Variation_Table_Manager {
 
 		echo '<button type="submit" class="button">' . __( 'Filter', 'wc-variation-table-manager' ) . '</button>';
 		echo '</form>';
-
-		// Existing code to handle variations and display them continues...
 
 		$variation_ids = $product->get_children();
 
@@ -222,12 +220,12 @@ class WC_Variation_Table_Manager {
 		echo '</form>';
 
 		?>
-		<script type="text/javascript">
-            jQuery(document).ready(function($) {
-                $('#sku_generator').on('click', function() {
+        <script type="text/javascript">
+            jQuery(document).ready(function ($) {
+                $('#sku_generator').on('click', function () {
                     const baseSku = prompt("<?php _e( 'Enter the base SKU:', 'wc-variation-table-manager' ); ?>");
                     if (baseSku) {
-                        $('input[name^="variation_sku_"]').each(function() {
+                        $('input[name^="variation_sku_"]').each(function () {
                             const $row = $(this).closest('tr');
                             const label = $row.find('td:first').text();
                             const sku = generateSku(baseSku, label);
@@ -240,11 +238,11 @@ class WC_Variation_Table_Manager {
                     const parts = label.toLowerCase().split(',');
                     const suffix = parts.map(function (part) {
                         return part.trim().split(' ').map(function (word) {
-                            if(word.includes('-')) {
-                                return word.split('-').map(function(word) {
+                            if (word.includes('-')) {
+                                return word.split('-').map(function (word) {
                                     return word.charAt(0);
                                 }).join('');
-                            }else{
+                            } else {
                                 return word.charAt(0);
                             }
                         }).join('');
@@ -252,7 +250,7 @@ class WC_Variation_Table_Manager {
                     return baseSku + '-' + suffix;
                 }
             });
-		</script>
+        </script>
 		<?php
 	}
 
@@ -302,7 +300,7 @@ class WC_Variation_Table_Manager {
 			}
 		}
 
-		add_action( 'admin_notices', function(){
+		add_action( 'admin_notices', function () {
 			echo '<div class="updated"><p>' . __( 'Variations updated successfully.', 'wc-variation-table-manager' ) . '</p></div>';
 		} );
 	}// handle_variation_form_submission
